@@ -1,0 +1,71 @@
+from fastapi import UploadFile
+import requests
+import io
+import json
+from typing import Optional, Dict, Any, Union
+from talkingdb.models.api.mode import ClientMode
+from talkingdb.models.metadata.metadata import Metadata
+from talkingdb.helpers.client import Config
+from ..api import reader
+
+
+class CEClient:
+    def __init__(
+        self,
+        config: Config,
+        headers: Optional[Dict[str, str]] = None,
+    ):
+
+        self.mode = config.CLIENT_MODE
+        self.timeout = config.API_TIMEOUT
+        self.endpoint = config.CE_HOST
+
+        self.session: Optional[requests.Session] = None
+
+        if self.mode == ClientMode.API:
+            if not self.endpoint:
+                raise ValueError("endpoint is required in API mode")
+
+            self.session = requests.Session()
+            if headers:
+                self.session.headers.update(headers)
+
+    def parse_file(
+        self,
+        *,
+        file_bytes: Optional[Union[io.BytesIO, bytes]] = None,
+        file_name: Optional[str] = None,
+        file: Optional[UploadFile] = None,
+        metadata: Optional[Metadata] = None,
+    ) -> Dict[str, Any]:
+
+        if self.mode == ClientMode.API:
+            if file:
+                file_name = file.filename
+                file_bytes = file.file.read()
+
+            if isinstance(file_bytes, bytes):
+                file_bytes = io.BytesIO(file_bytes)
+
+            files = {"document_file": (file_name, file_bytes)}
+            data = {}
+
+            if metadata:
+                data["metadata"] = metadata.to_str()
+
+            response = self.session.post(
+                f"{self.endpoint}/content/parse",
+                files=files,
+                data=data,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            return response.json()
+
+        if not file:
+            file = UploadFile(filename=file_name, file=file_bytes)
+
+        return reader.parse_file(
+            document_file=file,
+            metadata=metadata.to_str() if metadata else None
+        )
