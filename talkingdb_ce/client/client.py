@@ -1,7 +1,6 @@
 from fastapi import UploadFile
 import requests
 import io
-import json
 from typing import Optional, Dict, Any, Union
 from talkingdb.models.api.mode import ClientMode
 from talkingdb.models.metadata.metadata import Metadata
@@ -30,7 +29,7 @@ class CEClient:
             if headers:
                 self.session.headers.update(headers)
 
-    def parse_file(
+    async def parse_file(
         self,
         *,
         file_bytes: Optional[Union[io.BytesIO, bytes]] = None,
@@ -65,7 +64,7 @@ class CEClient:
         if not file:
             file = UploadFile(filename=file_name, file=file_bytes)
 
-        return reader.parse_file(
+        return await reader.parse_file(
             document_file=file,
             metadata=metadata.to_str() if metadata else None
         )
