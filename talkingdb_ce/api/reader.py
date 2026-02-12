@@ -55,7 +55,7 @@ async def parse_file(
     file_type = ext.lstrip(".").lower()
 
     document = parse_document(io_buffer, file_type, file_name)
-    file_index = document.build_index(file_name)
+    file_index = document.build_index()
 
     update_event(event, EventStatus.COMPLETED)
 
