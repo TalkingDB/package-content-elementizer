@@ -4,7 +4,7 @@ from typing import List, Optional
 from docx import Document
 from docx.enum.section import WD_ORIENT
 from docx.text.paragraph import Paragraph
-from docx.table import Table
+from docx.table import Table, _Cell
 
 from docx.oxml.text.paragraph import CT_P
 from docx.oxml.table import CT_Tbl
@@ -91,33 +91,38 @@ class DocxReader:
     def extract_table(self, tbl: Table) -> TableModel:
         model = TableModel()
 
-        for r_idx, row in enumerate(tbl.rows):
+        for row in tbl.rows:
             row_model = []
 
-            for cell in row.cells:
-                colspan = 1
+            for tc in row._tr.tc_lst:
+                colspan = int(tc.grid_span or 1)
                 rowspan = 1
-                colspan = int(cell._tc.grid_span)
-                if cell._tc.vMerge == "restart":
-                    rowspan = cell._tc.bottom
+                if tc.vMerge == "restart":
+                    try:
+                        rowspan = max(tc.bottom - tc.top, 1)
+                    except (ValueError, AttributeError):
+                        rowspan = 1
 
-                _paragraphs = []
-                for p in cell.paragraphs:
-                    if p.text.strip():
-                        is_list, list_type, level = self.extract_list_info(p)
+                cell = None if tc.vMerge == "continue" else _Cell(tc, tbl)
 
-                        _paragraphs.append(ParagraphModel(
-                            style=self.extract_paragraph_style(p),
-                            runs=self.extract_runs(p),
-                            is_list=is_list,
-                            list_type=list_type,
-                            list_level=level,
-                        ))
+                for _ in range(colspan):
+                    _paragraphs = []
+                    if cell is not None:
+                        for p in cell.paragraphs:
+                            if p.text.strip():
+                                is_list, list_type, level = self.extract_list_info(p)
+                                _paragraphs.append(ParagraphModel(
+                                    style=self.extract_paragraph_style(p),
+                                    runs=self.extract_runs(p),
+                                    is_list=is_list,
+                                    list_type=list_type,
+                                    list_level=level,
+                                ))
 
-                row_model.append(
-                    TableCellModel(paragraphs=_paragraphs,
-                                   colspan=colspan, rowspan=rowspan)
-                )
+                    row_model.append(
+                        TableCellModel(paragraphs=_paragraphs,
+                                       colspan=colspan, rowspan=rowspan)
+                    )
 
             model.rows.append(row_model)
 
