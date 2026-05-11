@@ -105,24 +105,30 @@ class DocxReader:
 
                 cell = None if tc.vMerge == "continue" else _Cell(tc, tbl)
 
-                for _ in range(colspan):
-                    _paragraphs = []
-                    if cell is not None:
-                        for p in cell.paragraphs:
-                            if p.text.strip():
-                                is_list, list_type, level = self.extract_list_info(p)
-                                _paragraphs.append(ParagraphModel(
-                                    style=self.extract_paragraph_style(p),
-                                    runs=self.extract_runs(p),
-                                    is_list=is_list,
-                                    list_type=list_type,
-                                    list_level=level,
-                                ))
+                paragraphs: List[ParagraphModel] = []
+                if cell is not None:
+                    for p in cell.paragraphs:
+                        if p.text.strip():
+                            is_list, list_type, level = self.extract_list_info(p)
+                            paragraphs.append(ParagraphModel(
+                                style=self.extract_paragraph_style(p),
+                                runs=self.extract_runs(p),
+                                is_list=is_list,
+                                list_type=list_type,
+                                list_level=level,
+                            ))
 
-                    row_model.append(
-                        TableCellModel(paragraphs=_paragraphs,
-                                       colspan=colspan, rowspan=rowspan)
-                    )
+                row_model.append(TableCellModel(
+                    paragraphs=paragraphs,
+                    colspan=colspan,
+                    rowspan=rowspan,
+                ))
+                for _ in range(colspan - 1):
+                    row_model.append(TableCellModel(
+                        paragraphs=[],
+                        colspan=1,
+                        rowspan=1,
+                    ))
 
             model.rows.append(row_model)
 
