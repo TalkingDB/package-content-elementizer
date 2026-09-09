@@ -172,7 +172,7 @@ class DocxReader:
         cancel_check: Optional[Callable[[], bool]] = None,
         channel: Optional[str] = None,
         file_hash: Optional[str] = None,
-    ) -> DocumentModel:
+    ) -> tuple[DocumentModel, Optional[str]]:
         self.io_buffer = io_buffer
         self.doc_uid = DocumentModel.make_uid(io_buffer)
 
