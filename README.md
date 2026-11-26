@@ -6,6 +6,11 @@ Reads a PDF or Word (DOCX) document and turns it into structured JSON **elements
 ![Python 3.12 or 3.13](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB)
 ![Port 8091](https://img.shields.io/badge/port-8091-555)
 
+<p align="center">
+  <img src="docs/images/demo.gif" alt="A short animated tour of package-content-elementizer: what it is, how to start, and which page to read next">
+</p>
+<p align="center"><sub>A short tour: what it is, how to start, and what to read next.</sub></p>
+
 | Start here | Go deeper |
 | :--- | :--- |
 | [What it is](#what-it-is) | [Architecture: how PDF and DOCX are read](docs/architecture.md) |
@@ -85,6 +90,12 @@ docker run -p 8091:8091 talkingdb-ce
 ## Code contributor
 
 mayank.g@smarter.codes
+
+## Support TalkingDB
+
+If package-content-elementizer saved you time, please [give it a star](https://github.com/TalkingDB/package-content-elementizer) ⭐. Stars help other developers find the project.
+
+Found a bug, or a document it gets wrong? [Open an issue](https://github.com/TalkingDB/package-content-elementizer/issues/new). We are always here to help and open to a conversation. Explore the TalkingDB applications at [talkingdb.io](https://talkingdb.io/#applications).
 
 ## License
 
