@@ -1,0 +1,18 @@
+flowchart TB
+    accTitle: How the content elementizer reads a file
+    accDescr: The request is checked for file type. A PDF is checked for a password, converted to DOCX in batches in a separate process, and rejected if it has almost no text. A DOCX is optionally rendered with LibreOffice to find page numbers. Both are then read into a DocumentModel, and a heading index is built. The response holds the document and the file index.
+    REQ["POST /content/parse<br>document_file + metadata"] --> T{"file type"}
+    T -- "other" --> BAD["DocumentFailure<br>UNSUPPORTED_FILE_TYPE"]
+    T -- pdf --> PW{"password<br>protected?"}
+    PW -- yes --> BADPW["DocumentFailure<br>PASSWORD_PROTECTED"]
+    PW -- no --> CONV["pdf2docx in a killable process<br>batches of CE_PDF_CONVERT_BATCH_PAGES"]
+    CONV --> TXT{"at least CE_PDF_MIN_TEXT_CHARS<br>of text?"}
+    TXT -- no --> BADOCR["fail: likely scanned,<br>OCR not supported"]
+    TXT -- yes --> DOCX["DocxReader"]
+    T -- docx --> PAG{"CE_DOCX_PAGINATE?"}
+    PAG -- "on" --> SOFF["LibreOffice renders to PDF<br>to assign page numbers"]
+    PAG -- "off" --> DOCX
+    SOFF --> DOCX
+    DOCX --> DM["DocumentModel<br>paragraphs, tables, layouts"]
+    DM --> IDX["build_index()<br>FileIndexModel"]
+    IDX --> RES["{document, file_index}"]
