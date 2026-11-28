@@ -1,0 +1,9 @@
+flowchart TB
+    accTitle: Where package-content-elementizer fits
+    accDescr: module-ttt sends PDF and DOCX files to the content elementizer, either in process or over HTTP. The elementizer returns a document of elements and a heading index, which TTT builds into a searchable graph.
+    U["PDF or DOCX"] --> TTT["module-ttt<br>(ingestion jobs)"]
+    TTT -- "CEClient<br>direct or HTTP" --> CE["package-content-elementizer<br>:8091"]:::here
+    CE -- "document + file_index" --> TTT
+    TTT --> G[("Document graph<br>SQLite")]
+    CE -. "baked DOCX, if MinIO is set" .-> MIN[("MinIO")]
+    classDef here stroke-width:3px
